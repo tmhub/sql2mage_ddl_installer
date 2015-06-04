@@ -3,7 +3,7 @@ php tool for generating  magento ddl installer script
 
 #usage 
 ~~~bash
-ser@user-H87M-HD3:/var/www/sql2mage_ddl_installer$ php -f sql2mage_ddl_installer.php  127.0.0.1 root front123 magento  tm_helpmate_status  
+user@user:/var/www/sql2mage_ddl_installer$ php -f sql2mage_ddl_installer.php  127.0.0.1 root front123 magento  tm_helpmate_status  
 
 *********************************************************************************
 CREATE TABLE `tm_helpmate_status` (
