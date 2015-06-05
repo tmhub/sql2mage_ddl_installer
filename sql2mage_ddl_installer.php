@@ -228,8 +228,8 @@ class SQLCreateStatemant2MageDdlTableConvertor {
                 . "{$t}{$t}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
                 . "{$t}{$onDelete}, {$onUpdate})\n";
         }
-        $str .= "\$installer->getConnection()->createTable(\$table);";
-        return $str . ";";
+        $str .= ";\n\$installer->getConnection()->createTable(\$table);";
+        return $str;
     }
 }
     if (6 != count($argv)) {
