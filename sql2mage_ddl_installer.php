@@ -75,7 +75,7 @@ class SQLCreateStatemant2MageDdlTableConvertor {
             // Zend_Debug::dump($column);
             $column = trim($column, "\n\t ");
 
-            list($columnName, $_column) = explode(" ", $column, 2);
+            @list($columnName, $_column) = explode(" ", $column, 2);
             $columnName = str_replace(array("'", "\"", "`"), '', $columnName);
 
             @list($type, $_column) = explode(" ", $_column, 2);
@@ -98,6 +98,11 @@ class SQLCreateStatemant2MageDdlTableConvertor {
                 list(, $default) = explode(" DEFAULT ", $column, 2);
                 $default = array_shift(explode(" ", $default));
                 $default = str_replace(array("'", "\"", "`"), '', $default);
+
+                if ($default == '') {
+                    $default = "''";
+                }
+
                 if ($default == 'NULL' || $default == 'null') {
                     $default = 'NULL';
                     $nullable = true;
