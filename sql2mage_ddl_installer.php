@@ -185,7 +185,7 @@ class SQLCreateStatemant2MageDdlTableConvertor {
 
     protected function _getType($type)
     {
-        if ($type === 'int') {
+        if ($type === 'int' || $type === 'mediumint') {
             $type = 'integer';
         }
         return 'Varien_Db_Ddl_Table::TYPE_' . strtoupper($type);
