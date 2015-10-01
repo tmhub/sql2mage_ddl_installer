@@ -1,6 +1,6 @@
 <?php
 
-class SQLCreateStatemant2MageDdlTableConvertor {
+class SQLCreateStatemant2Mage2DdlTableConvertor {
 
     // protected $_sql;
 
@@ -14,8 +14,12 @@ class SQLCreateStatemant2MageDdlTableConvertor {
 
     protected $_foreignKeys = array();
 
-    public function __construct($sql)
+    protected $_magentoVersion = 1;
+
+    public function __construct($sql, $version = 1)
     {
+        $this->_magentoVersion = (int) $version;
+
         $sql = str_replace(array("\n", "  ", "\t"), " ", $sql);
         $parts = explode(",", $sql);
 
@@ -136,7 +140,7 @@ class SQLCreateStatemant2MageDdlTableConvertor {
             $key = str_replace(array("'", "\"", "`"), '', $key);
             list(, $fields) = explode("(", $key);
             $fields = explode(" ", str_replace(array(",", "(", ")"), "", $fields));
-
+            $fields = array_filter($fields);
 
             $this->_indexes[] = array(
                 'table'  => $tableName,
@@ -180,7 +184,12 @@ class SQLCreateStatemant2MageDdlTableConvertor {
 
     protected function _getAction($action)
     {
-        return 'Varien_Db_Ddl_Table::ACTION_' . strtoupper(str_replace(" ", "_", $action));
+        $prefix = '\Magento\Framework\DB\Ddl\Table';
+
+        if ($this->_magentoVersion != 2) {
+            $prefix = 'Varien_Db_Ddl_Table';
+        }
+        return "{$prefix}::ACTION_" . strtoupper(str_replace(" ", "_", $action));
     }
 
     protected function _getType($type)
@@ -188,7 +197,11 @@ class SQLCreateStatemant2MageDdlTableConvertor {
         if ($type === 'int' || $type === 'mediumint') {
             $type = 'integer';
         }
-        return 'Varien_Db_Ddl_Table::TYPE_' . strtoupper($type);
+        $prefix = '\Magento\Framework\DB\Ddl\Table';
+        if ($this->_magentoVersion != 2) {
+            $prefix = 'Varien_Db_Ddl_Table';
+        }
+        return "{$prefix}::TYPE_" . strtoupper($type);
     }
 
     public function __toString()
@@ -197,8 +210,11 @@ class SQLCreateStatemant2MageDdlTableConvertor {
         $str = "\$table = \$installer->getConnection()\n"
             . "{$t}->newTable(\$installer->getTable('{$this->_tableName}'))\n";
 
+        $arrayStart = $this->_magentoVersion == 2 ? '[' : 'array(';
+        $arrayEnd = $this->_magentoVersion == 2 ? ']' : ')';
+
         foreach ($this->_columns as $column) {
-            $str .= "{$t}->addColumn('{$column['name']}', {$column['type']}, {$column['length']}, array(\n" .
+            $str .= "{$t}->addColumn('{$column['name']}', {$column['type']}, {$column['length']}, {$arrayStart}\n" .
                     ($column['identity'] ? "{$t}{$t}'identity'  => true,\n" : '') .
                     ($column['unsigned'] ? "{$t}{$t}'unsigned'  => true,\n" : '') .
                     ($column['nullable'] !== null ?
@@ -206,7 +222,7 @@ class SQLCreateStatemant2MageDdlTableConvertor {
                     ($column['default'] !== false ? "{$t}{$t}'default'  => {$column['default']},\n" : '') .
                     // "'nullable'  => false,\n" .
                     ($column['primary'] ? "{$t}{$t}'primary'   => true,\n" : '') .
-                    "{$t}), '{$column['comment']}')\n"
+                    "{$t}{$arrayEnd}, '{$column['comment']}')\n"
             ;
         }
         foreach ($this->_indexes as $index) {
@@ -216,8 +232,8 @@ class SQLCreateStatemant2MageDdlTableConvertor {
             }
             $fields = implode(", ", $fields);
 
-            $str .= "{$t}->addIndex(\$installer->getIdxName('{$index['table']}', array({$fields})),\n"
-                . "{$t}{$t}array({$fields}))\n";
+            $str .= "{$t}->addIndex(\$installer->getIdxName('{$index['table']}', {$arrayStart}{$fields}{$arrayEnd}),\n"
+                . "{$t}{$t}{$arrayStart}{$fields}{$arrayEnd})\n";
         }
 
         $tableName = $this->_tableName;
@@ -237,8 +253,8 @@ class SQLCreateStatemant2MageDdlTableConvertor {
         return $str;
     }
 }
-    if (6 != count($argv)) {
-        echo "Usage: php -f {$argv[0]} host user password database table\n";
+    if (6 > count($argv)) {
+        echo "Usage: php -f {$argv[0]} host user password database table magento_version\n";
         return;
     }
 
@@ -247,6 +263,7 @@ class SQLCreateStatemant2MageDdlTableConvertor {
     $password  = $argv[3];
     $database  = $argv[4];
     $tableName = $argv[5];
+    $magentoVersion = isset($argv[6]) ? $argv[6] : 1;
 
     $link = mysql_connect($host, $username, $password);
     mysql_select_db($database);
@@ -292,7 +309,7 @@ class SQLCreateStatemant2MageDdlTableConvertor {
 // ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
 
-    $convertor = new SQLCreateStatemant2MageDdlTableConvertor($sql);
+    $convertor = new SQLCreateStatemant2Mage2DdlTableConvertor($sql, $magentoVersion);
 
     echo $convertor;
 
