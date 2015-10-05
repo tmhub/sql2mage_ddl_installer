@@ -14,9 +14,9 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
 
     protected $_foreignKeys = array();
 
-    protected $_magentoVersion = 1;
+    protected $_magentoVersion = 2;
 
-    public function __construct($sql, $version = 1)
+    public function __construct($sql, $version = 2)
     {
         $this->_magentoVersion = (int) $version;
 
@@ -89,6 +89,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             if (empty($length)) {
                 $length = 'null';
             }
+            $_type = $type;
             $type = $this->_getType($type);
 
             $identity = $unsigned = $isprimary = $default = false;
@@ -125,6 +126,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             $this->_columns[] = array(
                 'name'     => $columnName,
                 'type'     => $type,
+                '_type'    => $_type,
                 'length'   => $length,
                 'identity' => $identity,
                 'unsigned' => $unsigned,
@@ -197,6 +199,9 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         if ($type === 'int' || $type === 'mediumint') {
             $type = 'integer';
         }
+        if ($type === 'tinyint' && $this->_magentoVersion == 2) {
+            $type = 'smallint';
+        }
         $prefix = '\Magento\Framework\DB\Ddl\Table';
         if ($this->_magentoVersion != 2) {
             $prefix = 'Varien_Db_Ddl_Table';
@@ -242,14 +247,179 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             $priColumnName = $key['column'];
             $refTableName  = $key['reference_table'];
             $refColumnName = $key['reference_column'];
-            $onUpdate      = $key['on_update'];
             $onDelete      = $key['on_delete'];
+            $onUpdate      = '';
+            if ($this->_magentoVersion != 2) {
+                $onUpdate = ', ' . $key['on_update'];
+            }
 
             $str .= "{$t}->addForeignKey(\$installer->getFkName('{$tableName}', '{$priColumnName}', '{$refTableName}', '{$refColumnName}'),\n"
                 . "{$t}{$t}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
-                . "{$t}{$onDelete}, {$onUpdate})\n";
+                . "{$t}{$onDelete}{$onUpdate})\n";
         }
         $str .= ";\n\$installer->getConnection()->createTable(\$table);";
+        return $str;
+    }
+
+    public function generateItnterface()
+    {
+        list($vendor, $moduleName, $modelName) = explode('_', $this->_tableName, 3);
+        $vendor = strtoupper($vendor);
+        $moduleName = ucfirst($moduleName);
+        $modelName = ucfirst($modelName);
+        //$interfacename = str_replace('_', '\\', $this->_tableName);
+        $str = "<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n\n"
+            . "interface {$modelName}Interface\n{\n";
+        $t = '    ';
+        foreach ($this->_columns as $column) {
+            $_column = $column['name'];
+            $str .= "{$t}CONST " . strtoupper($_column) . ' = ' . "'{$_column}';\n";
+        }
+        $str .= "\n";
+        foreach ($this->_columns as $column) {
+            $name   = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
+            $type    = 'string';
+            if (false != strstr($column['_type'], 'int')) {
+                $type = 'int';
+            }
+            $comment = "{$t}/**\n"
+                . "{$t} * Get {$column['name']}\n"
+                . "{$t} * \n"
+                . "{$t} * return {$type}\n"
+                . "{$t} */";
+            $str .= "{$comment}\n{$t}public function get{$name}();\n\n";
+        }
+
+        $str .= "\n";
+        foreach ($this->_columns as $column) {
+            $name    = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
+            $param   = '$' . lcfirst($name);
+            $type    = 'string';
+            if (false != strstr($column['_type'], 'int')) {
+                $type = 'int';
+            }
+            $comment = "{$t}/**\n"
+                . "{$t} * Set {$column['name']}\n"
+                . "{$t} * \n"
+                . "{$t} * @param {$type} {$param} \n"
+                . "{$t} * return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface\n"
+                . "{$t} */";
+
+            $str .= "{$comment}\n{$t}public function set{$name}({$param});\n\n";
+        }
+
+        $str .= "\n}";
+        // return $str;
+
+        $tag = strtolower($moduleName . '_' . $modelName);
+        $str .= "\n<?php namespace {$vendor}\\{$moduleName}\\Model;
+
+use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;
+use Magento\Framework\Object\IdentityInterface;
+
+class {$modelName}  extends \\Magento\\Framework\\Model\\AbstractModel implements {$modelName}Interface, IdentityInterface
+{
+    /**
+     * cache tag
+     */
+    const CACHE_TAG = '{$tag}';
+
+    /**
+     * @var string
+     */
+    protected \$_cacheTag = '{$tag}';
+
+    /**
+     * Prefix of model events names
+     *
+     * @var string
+     */
+    protected \$_eventPrefix = '{$tag}';
+
+    /**
+     * Initialize resource model
+     *
+     * @return void
+     */
+    protected function _construct()
+    {
+        \$this->_init('{$vendor}\\{$moduleName}\\Model\\Resource\\{$modelName}');
+    }
+
+    /**
+     * Return unique ID(s) for each object in system
+     *
+     * @return array
+     */
+    public function getIdentities()
+    {
+        return [self::CACHE_TAG . '_' . \$this->getId()];
+    }
+    ";
+        $str .= "\n";
+        foreach ($this->_columns as $column) {
+            $name   = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
+            $type    = 'string';
+            if (false != strstr($column['_type'], 'int')) {
+                $type = 'int';
+            }
+            $comment = "{$t}/**\n"
+                . "{$t} * Get {$column['name']}\n"
+                . "{$t} * \n"
+                . "{$t} * return {$type}\n"
+                . "{$t} */";
+            $const = 'self::' . strtoupper($column['name']);
+            $str .= "{$comment}\n{$t}public function get{$name}()
+    {
+        return \$this->getData({$const});
+    }\n\n";
+        }
+
+        $str .= "\n";
+        foreach ($this->_columns as $column) {
+            $name    = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
+            $param   = '$' . lcfirst($name);
+            $const   = 'self::' . strtoupper($column['name']);
+            $type    = 'string';
+            if (false != strstr($column['_type'], 'int')) {
+                $type = 'int';
+            }
+            $comment = "\n\n{$t}/**\n"
+                . "{$t} * Set {$column['name']}\n"
+                . "{$t} * \n"
+                . "{$t} * @param {$type} {$param} \n"
+                . "{$t} * return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface\n"
+                . "{$t} */";
+
+            $str .= "{$comment}\n{$t}public function set{$name}({$param})
+    {
+        return \$this->setData({$const}, {$param});
+    }";
+        }
+
+        $str .= "\n}";
+        // generate resource
+        $primaryKey = end($this->_primary);
+        $str .= "\n<?php
+namespace {$vendor}\\{$moduleName}\\Model\\Resource;
+
+/**
+ * {$moduleName} {$modelName} mysql resource
+ */
+class {$modelName} extends \\Magento\\Framework\\Model\\Resource\\Db\\AbstractDb
+{
+    /**
+     * Initialize resource model
+     *
+     * @return void
+     */
+    protected function _construct()
+    {
+        \$this->_init('{$this->_tableName}', '{$primaryKey}');
+    }
+";
+        $str .= "\n}";
+
         return $str;
     }
 }
@@ -311,7 +481,9 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
 
     $convertor = new SQLCreateStatemant2Mage2DdlTableConvertor($sql, $magentoVersion);
 
+    echo $convertor->generateItnterface();
     echo $convertor;
+
 
     echo "\n{$line}\n"
 ?>
