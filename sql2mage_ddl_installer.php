@@ -154,7 +154,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         foreach ($fKeys as $key) {
             $key = str_replace(array("'", "\"", "`"), '', $key);
 
-            list($key, $onUpdate) = explode('ON UPDATE ', $key);
+            @list($key, $onUpdate) = explode('ON UPDATE ', $key);
             $onUpdate = trim($onUpdate);
             $onUpdate = $this->_getAction($onUpdate);
 
