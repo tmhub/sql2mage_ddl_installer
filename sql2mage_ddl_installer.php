@@ -158,7 +158,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             $onUpdate = trim($onUpdate);
             $onUpdate = $this->_getAction($onUpdate);
 
-            list($key, $onDelete) = explode('ON DELETE ', $key);
+            @list($key, $onDelete) = explode('ON DELETE ', $key);
             $onDelete = trim($onDelete);
             $onDelete = $this->_getAction($onDelete);
 
@@ -186,6 +186,9 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
 
     protected function _getAction($action)
     {
+        if (empty($action)) {
+            $action = 'cascade';
+        }
         $prefix = '\Magento\Framework\DB\Ddl\Table';
 
         if ($this->_magentoVersion != 2) {
