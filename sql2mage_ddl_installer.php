@@ -1,24 +1,33 @@
 <?php
 
-class SQLCreateStatemant2Mage2DdlTableConvertor {
+namespace Tmhub;
+
+class SQLCreateStatemant2Mage2DdlTableConvertor
+{
 
     // protected $_sql;
 
-    protected $_tableName = '';
+    protected $tableName = '';
 
-    protected $_primary = array();
+    protected $vendorName;
 
-    protected $_columns = array();
+    protected $moduleName;
 
-    protected $_indexes = array();
+    protected $modelName;
 
-    protected $_foreignKeys = array();
+    protected $primary = array();
 
-    protected $_magentoVersion = 2;
+    protected $columns = array();
+
+    protected $indexes = array();
+
+    protected $foreignKeys = array();
+
+    protected $magentoVersion = 2;
 
     public function __construct($sql, $version = 2)
     {
-        $this->_magentoVersion = (int) $version;
+        $this->magentoVersion = (int) $version;
 
         $sql = str_replace(array("\n", "  ", "\t"), " ", $sql);
         $parts = explode(",", $sql);
@@ -35,30 +44,32 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         // array_push($parts, $engine);
 
         $tableName = str_replace(
-            array("CREATE", 'TABLE', ' ', '`', "'", '"'), '', $tableName
+            array("CREATE", 'TABLE', ' ', '`', "'", '"'),
+            '',
+            $tableName
         );
-        $this->_tableName = $tableName;
-        // Zend_Debug::dump($tableName);
+        $this->tableName = $tableName;
+
+        list($vendor, $moduleName, $modelName) = explode('_', $tableName, 3);
+        $this->vendorName = strtoupper($vendor);
+        $this->moduleName = ucfirst($moduleName);
+        $this->modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $modelName)));
 
         // Zend_Debug::dump($parts);
 
         $columns = $keys = $fKeys = $primary = array();
         foreach ($parts as $part) {
-
             if (strstr($part, "PRIMARY KEY")) {
-
                 $primary[] = $part;
                 continue;
             }
 
             if (strstr($part, "FOREIGN KEY")) {
-
                 $fKeys[] = $part;
                 continue;
             }
 
             if (strstr($part, "KEY")) {
-
                 $keys[] = $part;
                 continue;
             }
@@ -72,8 +83,8 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             $_primary = array_merge(explode(",", $p), $_primary);
         }
 
-        $this->_primary = $_primary;
-        // $this->_columns = $columns;
+        $this->primary = $_primary;
+        // $this->columns = $columns;
 
         foreach ($columns as $column) {
             // Zend_Debug::dump($column);
@@ -90,7 +101,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
                 $length = 'null';
             }
             $_type = $type;
-            $type = $this->_getType($type);
+            $type = $this->getType($type);
 
             $identity = $unsigned = $isprimary = $default = false;
             $nullable = null;
@@ -123,7 +134,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             }
             $comment = ucwords(str_replace("_", " ", $columnName));
 
-            $this->_columns[] = array(
+            $this->columns[] = array(
                 'name'     => $columnName,
                 'type'     => $type,
                 '_type'    => $_type,
@@ -144,23 +155,23 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             $fields = explode(" ", str_replace(array(",", "(", ")"), "", $fields));
             $fields = array_filter($fields);
 
-            $this->_indexes[] = array(
+            $this->indexes[] = array(
                 'table'  => $tableName,
                 'fields' => $fields,
             );
 
         }
-        // $this->_foreignKeys = $fKeys;
+        // $this->foreignKeys = $fKeys;
         foreach ($fKeys as $key) {
             $key = str_replace(array("'", "\"", "`"), '', $key);
 
             @list($key, $onUpdate) = explode('ON UPDATE ', $key);
             $onUpdate = trim($onUpdate);
-            $onUpdate = $this->_getAction($onUpdate);
+            $onUpdate = $this->getAction($onUpdate);
 
             @list($key, $onDelete) = explode('ON DELETE ', $key);
             $onDelete = trim($onDelete);
-            $onDelete = $this->_getAction($onDelete);
+            $onDelete = $this->getAction($onDelete);
 
 
             list($key, $reference) = explode('REFERENCES ', $key);
@@ -173,7 +184,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
             $priColumnName = str_replace(array(",", "(", ")"), "", $priColumnName);
             $priColumnName = trim($priColumnName);
 
-            $this->_foreignKeys[] = array(
+            $this->foreignKeys[] = array(
                 'table'            => $tableName,
                 'column'           => $priColumnName,
                 'reference_table'  => $refTableName,
@@ -184,29 +195,29 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         }
     }
 
-    protected function _getAction($action)
+    protected function getAction($action)
     {
         if (empty($action)) {
             $action = 'cascade';
         }
         $prefix = '\Magento\Framework\DB\Ddl\Table';
 
-        if ($this->_magentoVersion != 2) {
+        if ($this->magentoVersion != 2) {
             $prefix = 'Varien_Db_Ddl_Table';
         }
         return "{$prefix}::ACTION_" . strtoupper(str_replace(" ", "_", $action));
     }
 
-    protected function _getType($type)
+    protected function getType($type)
     {
         if ($type === 'int' || $type === 'mediumint') {
             $type = 'integer';
         }
-        if ($type === 'tinyint' && $this->_magentoVersion == 2) {
+        if ($type === 'tinyint' && $this->magentoVersion == 2) {
             $type = 'smallint';
         }
         $prefix = '\Magento\Framework\DB\Ddl\Table';
-        if ($this->_magentoVersion != 2) {
+        if ($this->magentoVersion != 2) {
             $prefix = 'Varien_Db_Ddl_Table';
         }
         return "{$prefix}::TYPE_" . strtoupper($type);
@@ -215,13 +226,16 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
     public function __toString()
     {
         $t = '    ';
-        $str = "\$table = \$installer->getConnection()\n"
-            . "{$t}->newTable(\$installer->getTable('{$this->_tableName}'))\n";
+        $filename = "{$this->vendorName}/{$this->moduleName}/" . ($this->magentoVersion == 2 ?
+            'Setup/InstallSchema.php' : "sql/{$this->vendorName}_{$this->moduleName}_setup/mysql4-install-1.0.0.php");
 
-        $arrayStart = $this->_magentoVersion == 2 ? '[' : 'array(';
-        $arrayEnd = $this->_magentoVersion == 2 ? ']' : ')';
+        $str = "\n/* {$filename} */\n\$table = \$installer->getConnection()\n"
+            . "{$t}->newTable(\$installer->getTable('{$this->tableName}'))\n";
 
-        foreach ($this->_columns as $column) {
+        $arrayStart = $this->magentoVersion == 2 ? '[' : 'array(';
+        $arrayEnd = $this->magentoVersion == 2 ? ']' : ')';
+
+        foreach ($this->columns as $column) {
             $str .= "{$t}->addColumn('{$column['name']}', {$column['type']}, {$column['length']}, {$arrayStart}\n" .
                     ($column['identity'] ? "{$t}{$t}'identity'  => true,\n" : '') .
                     ($column['unsigned'] ? "{$t}{$t}'unsigned'  => true,\n" : '') .
@@ -233,7 +247,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
                     "{$t}{$arrayEnd}, '{$column['comment']}')\n"
             ;
         }
-        foreach ($this->_indexes as $index) {
+        foreach ($this->indexes as $index) {
             $fields = $index['fields'];
             foreach ($fields as &$field) {
                 $field = "'{$field}'";
@@ -244,19 +258,20 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
                 . "{$t}{$t}{$arrayStart}{$fields}{$arrayEnd})\n";
         }
 
-        $tableName = $this->_tableName;
+        $tableName = $this->tableName;
 
-        foreach ($this->_foreignKeys as $key) {
+        foreach ($this->foreignKeys as $key) {
             $priColumnName = $key['column'];
             $refTableName  = $key['reference_table'];
             $refColumnName = $key['reference_column'];
             $onDelete      = $key['on_delete'];
             $onUpdate      = '';
-            if ($this->_magentoVersion != 2) {
+            if ($this->magentoVersion != 2) {
                 $onUpdate = ', ' . $key['on_update'];
             }
 
-            $str .= "{$t}->addForeignKey(\$installer->getFkName('{$tableName}', '{$priColumnName}', '{$refTableName}', '{$refColumnName}'),\n"
+            $str .= "{$t}->addForeignKey("
+                . "\$installer->getFkName('{$tableName}', '{$priColumnName}', '{$refTableName}', '{$refColumnName}'),\n"
                 . "{$t}{$t}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
                 . "{$t}{$onDelete}{$onUpdate})\n";
         }
@@ -266,23 +281,21 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
 
     public function generateItnterface()
     {
-        list($vendor, $moduleName, $modelName) = explode('_', $this->_tableName, 3);
-        $vendor = strtoupper($vendor);
-        $moduleName = ucfirst($moduleName);
-        //$modelName = ucfirst($modelName);
-        $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $modelName)));
-        //$interfacename = str_replace('_', '\\', $this->_tableName);
+        $vendor = $this->vendorName;
+        $moduleName = $this->moduleName;
+        $modelName = $this->modelName;
+        //$interfacename = str_replace('_', '\\', $this->tableName);
         $_str = array();
-        $filename = "{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface.php";
-        $str = "\n{$filename}\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n\n"
+        $filename = "{$vendor}/{$moduleName}/Api/Data/{$modelName}Interface.php";
+        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n\n"
             . "interface {$modelName}Interface\n{\n";
         $t = '    ';
-        foreach ($this->_columns as $column) {
+        foreach ($this->columns as $column) {
             $_column = $column['name'];
             $str .= "{$t}CONST " . strtoupper($_column) . ' = ' . "'{$_column}';\n";
         }
         $str .= "\n";
-        foreach ($this->_columns as $column) {
+        foreach ($this->columns as $column) {
             $name   = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
             $type    = 'string';
             if (false != strstr($column['_type'], 'int')) {
@@ -297,7 +310,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         }
 
         $str .= "\n";
-        foreach ($this->_columns as $column) {
+        foreach ($this->columns as $column) {
             $name    = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
             $param   = '$' . lcfirst($name);
             $type    = 'string';
@@ -320,13 +333,14 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         $_str[$filename] = $str;
         $str = '';
         $tag = strtolower($moduleName . '_' . $modelName);
-        $filename = "{$vendor}\\{$moduleName}\\Model\\{$modelName}.php";
-        $str .= "\n{$filename}\n<?php namespace {$vendor}\\{$moduleName}\\Model;
+        $filename = "{$vendor}/{$moduleName}/Model/{$modelName}.php";
+        $str .= "\n/* {$filename} */\n<?php namespace {$vendor}\\{$moduleName}\\Model;
 
 use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;
 use Magento\Framework\Object\IdentityInterface;
 
-class {$modelName}  extends \\Magento\\Framework\\Model\\AbstractModel implements {$modelName}Interface, IdentityInterface
+class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
+    implements {$modelName}Interface, IdentityInterface
 {
     /**
      * cache tag
@@ -366,7 +380,7 @@ class {$modelName}  extends \\Magento\\Framework\\Model\\AbstractModel implement
     }
     ";
         $str .= "\n";
-        foreach ($this->_columns as $column) {
+        foreach ($this->columns as $column) {
             $name   = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
             $type    = 'string';
             if (false != strstr($column['_type'], 'int')) {
@@ -385,7 +399,7 @@ class {$modelName}  extends \\Magento\\Framework\\Model\\AbstractModel implement
         }
 
         $str .= "\n";
-        foreach ($this->_columns as $column) {
+        foreach ($this->columns as $column) {
             $name    = str_replace(' ', '', ucwords(str_replace('_', ' ', $column['name'])));
             $param   = '$' . lcfirst($name);
             $const   = 'self::' . strtoupper($column['name']);
@@ -411,9 +425,9 @@ class {$modelName}  extends \\Magento\\Framework\\Model\\AbstractModel implement
         $str = '';
         // generate resource
 
-        $primaryKey = end($this->_primary);
-        $filename = "{$vendor}\\{$moduleName}\\Model\\Resource\\{$modelName}.php";
-        $str .= "\n{$filename}\n<?php
+        $primaryKey = end($this->primary);
+        $filename = "{$vendor}/{$moduleName}/Model/Resource/{$modelName}.php";
+        $str .= "\n/* {$filename} */\n<?php
 namespace {$vendor}\\{$moduleName}\\Model\\Resource;
 
 /**
@@ -428,7 +442,7 @@ class {$modelName} extends \\Magento\\Framework\\Model\\Resource\\Db\\AbstractDb
      */
     protected function _construct()
     {
-        \$this->_init('{$this->_tableName}', '{$primaryKey}');
+        \$this->_init('{$this->tableName}', '{$primaryKey}');
     }
 ";
         $str .= "\n}";
@@ -438,68 +452,44 @@ class {$modelName} extends \\Magento\\Framework\\Model\\Resource\\Db\\AbstractDb
         return implode('', $_str);
     }
 }
-    if (6 > count($argv)) {
-        echo "Usage: php -f {$argv[0]} host user password database table magento_version\n";
-        return;
+
+if (6 > count($argv)) {
+    echo "Usage: php -f {$argv[0]} host user password database table magento_version\n";
+    return;
+}
+
+$host      = $argv[1];
+$username  = $argv[2];
+$password  = $argv[3];
+$database  = $argv[4];
+$tableName = $argv[5];
+$magentoVersion = isset($argv[6]) ? $argv[6] : 1;
+
+$link = mysql_connect($host, $username, $password);
+mysql_select_db($database);
+$query = "SHOW CREATE TABLE {$tableName}";
+
+$result = mysql_query($query);
+
+$_sql = array();
+$sql = '';
+while ($line = mysql_fetch_array($result)) {
+    foreach ($line as $value) {
+        $_sql[] = $value;
     }
+}
+mysql_close($link);
 
-    $host      = $argv[1];
-    $username  = $argv[2];
-    $password  = $argv[3];
-    $database  = $argv[4];
-    $tableName = $argv[5];
-    $magentoVersion = isset($argv[6]) ? $argv[6] : 1;
+$sql = $_sql[2];
+$line = "***************************";
+$line .= $line . $line;
+echo "\n{$line}\n" . $sql . "\n{$line}\n";
 
-    $link = mysql_connect($host, $username, $password);
-    mysql_select_db($database);
-    $query = "SHOW CREATE TABLE {$tableName}";
+$convertor = new SQLCreateStatemant2Mage2DdlTableConvertor($sql, $magentoVersion);
 
-    $result = mysql_query($query);
-
-    $_sql = array();
-    $sql = '';
-    while ($line = mysql_fetch_array($result))
-    {
-        foreach ($line as $value)
-        {
-            $_sql[] = $value;
-        }
-    }
-    mysql_close($link);
-
-    $sql = $_sql[2];
-    $line = "***************************";
-    $line .= $line . $line;
-    echo "\n{$line}\n" . $sql . "\n{$line}\n";
-
-//     $sql = "CREATE TABLE `tm_helpmate_theard` (
-//   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-//   `ticket_id` int(11) unsigned NOT NULL,
-//   `message_id` varchar(255) NOT NULL,
-//   `created_at` datetime DEFAULT NULL,
-//   `text` text,
-//   `file` varchar(255) DEFAULT NULL,
-//   `user_id` int(10) unsigned DEFAULT NULL,
-//   `status` tinyint(1) NOT NULL DEFAULT '1',
-//   `priority` tinyint(1) NOT NULL DEFAULT '1',
-//   `department_id` int(11) unsigned NOT NULL,
-//   `enabled` tinyint(1) NOT NULL DEFAULT '1',
-//   PRIMARY KEY (`id`),
-//   KEY `FK_LINK_USER_HELPMATE_THEARD` (`user_id`),
-//   KEY `FK_LINK_DEPARTMENT_HELPMATE_THEARD` (`department_id`),
-//   KEY `FK_LINK_TICKET_HELPMATE_THEARD` (`ticket_id`),
-//   CONSTRAINT `FK_LINK_DEPARTMENT_HELPMATE_THEARD` FOREIGN KEY (`department_id`) REFERENCES `tm_helpmate_department` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-//   CONSTRAINT `FK_LINK_TICKET_HELPMATE_THEARD` FOREIGN KEY (`ticket_id`) REFERENCES `tm_helpmate_ticket` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-//   CONSTRAINT `FK_LINK_USER_HELPMATE_THEARD` FOREIGN KEY (`user_id`) REFERENCES `admin_user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-// ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+echo $convertor->generateItnterface();
+echo "\n{$line}\n";
+echo $convertor;
 
 
-    $convertor = new SQLCreateStatemant2Mage2DdlTableConvertor($sql, $magentoVersion);
-
-    echo $convertor->generateItnterface();
-    echo "\n{$line}\n";
-    echo $convertor;
-
-
-    echo "\n{$line}\n";
-?>
+echo "\n{$line}\n";
