@@ -269,9 +269,12 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         list($vendor, $moduleName, $modelName) = explode('_', $this->_tableName, 3);
         $vendor = strtoupper($vendor);
         $moduleName = ucfirst($moduleName);
-        $modelName = ucfirst($modelName);
+        //$modelName = ucfirst($modelName);
+        $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $modelName)));
         //$interfacename = str_replace('_', '\\', $this->_tableName);
-        $str = "<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n\n"
+        $_str = array();
+        $filename = "{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface.php";
+        $str = "\n{$filename}\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n\n"
             . "interface {$modelName}Interface\n{\n";
         $t = '    ';
         foreach ($this->_columns as $column) {
@@ -314,8 +317,11 @@ class SQLCreateStatemant2Mage2DdlTableConvertor {
         $str .= "\n}";
         // return $str;
 
+        $_str[$filename] = $str;
+        $str = '';
         $tag = strtolower($moduleName . '_' . $modelName);
-        $str .= "\n<?php namespace {$vendor}\\{$moduleName}\\Model;
+        $filename = "{$vendor}\\{$moduleName}\\Model\\{$modelName}.php";
+        $str .= "\n{$filename}\n<?php namespace {$vendor}\\{$moduleName}\\Model;
 
 use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;
 use Magento\Framework\Object\IdentityInterface;
@@ -401,9 +407,13 @@ class {$modelName}  extends \\Magento\\Framework\\Model\\AbstractModel implement
         }
 
         $str .= "\n}";
+        $_str[$filename] = $str;
+        $str = '';
         // generate resource
+
         $primaryKey = end($this->_primary);
-        $str .= "\n<?php
+        $filename = "{$vendor}\\{$moduleName}\\Model\\Resource\\{$modelName}.php";
+        $str .= "\n{$filename}\n<?php
 namespace {$vendor}\\{$moduleName}\\Model\\Resource;
 
 /**
@@ -422,8 +432,10 @@ class {$modelName} extends \\Magento\\Framework\\Model\\Resource\\Db\\AbstractDb
     }
 ";
         $str .= "\n}";
-
-        return $str;
+        $_str[$filename] = $str;
+        // $str = '';
+        // print_r(array_keys($_str));
+        return implode('', $_str);
     }
 }
     if (6 > count($argv)) {
@@ -485,8 +497,9 @@ class {$modelName} extends \\Magento\\Framework\\Model\\Resource\\Db\\AbstractDb
     $convertor = new SQLCreateStatemant2Mage2DdlTableConvertor($sql, $magentoVersion);
 
     echo $convertor->generateItnterface();
+    echo "\n{$line}\n";
     echo $convertor;
 
 
-    echo "\n{$line}\n"
+    echo "\n{$line}\n";
 ?>
