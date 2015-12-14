@@ -217,6 +217,9 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
         if ($type === 'tinyint' && $this->magentoVersion == 2) {
             $type = 'smallint';
         }
+        if ($type === 'varchar' && $this->magentoVersion == 2) {
+            $type = 'text';
+        }
         $prefix = '\Magento\Framework\DB\Ddl\Table';
         if ($this->magentoVersion != 2) {
             $prefix = 'Varien_Db_Ddl_Table';
