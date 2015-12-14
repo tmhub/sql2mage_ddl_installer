@@ -29,8 +29,9 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
     {
         $this->magentoVersion = (int) $version;
 
+        $sql = str_replace(",\n", ",,", $sql);
         $sql = str_replace(array("\n", "  ", "\t"), " ", $sql);
-        $parts = explode(",", $sql);
+        $parts = explode(",,", $sql);
 
         list($tableName, $parts0) = explode("(", $parts[0], 2);
         $parts[0] = $parts0;
@@ -227,7 +228,8 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
     {
         $t = '    ';
         $filename = "{$this->vendorName}/{$this->moduleName}/" . ($this->magentoVersion == 2 ?
-            'Setup/InstallSchema.php' : "sql/{$this->vendorName}_{$this->moduleName}_setup/mysql4-install-1.0.0.php");
+            'Setup/InstallSchema.php' :
+            strtolower("sql/{$this->vendorName}_{$this->moduleName}_setup/mysql4-install-1.0.0.php"));
 
         $str = "\n/* {$filename} */\n\$table = \$installer->getConnection()\n"
             . "{$t}->newTable(\$installer->getTable('{$this->tableName}'))\n";
@@ -292,7 +294,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
         $t = '    ';
         foreach ($this->columns as $column) {
             $_column = $column['name'];
-            $str .= "{$t}CONST " . strtoupper($_column) . ' = ' . "'{$_column}';\n";
+            $str .= "{$t}const " . strtoupper($_column) . ' = ' . "'{$_column}';\n";
         }
         $str .= "\n";
         foreach ($this->columns as $column) {
