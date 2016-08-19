@@ -1,10 +1,81 @@
 <?php
 
-if (1 > count($argv)) {
-    echo "Usage: php -f {$argv[0]} \n";
-    return;
+function getPackages($lab = 'tm')
+{
+    if ('tm' == $lab) {
+        $lab = 'tmhub';
+    }
+    // if (!isset($this->json[$lab])) {
+        $url = "https://$lab.github.io/packages/";
+        // $url = 'http://documentation.argentotheme.com/packages/';
+        $includes = json_decode(@file_get_contents($url . 'packages.json'), true);
+        $include = current(array_keys($includes['includes']));
+        $packages = json_decode(@file_get_contents($url . $include), true);
+        $packages = $packages['packages'];
+
+        return $packages;
+        // $this->json[$lab] = $packages;
+    // }
+
+    // return $this->json[$lab];
 }
 
+function getReqires($packageName, $lab = 'tm')
+{
+    $requires = [];
+    if (is_array($packageName)) {
+        foreach ($packageName as $package) {
+            $_requires = getReqires($package, $lab);
+            $requires = array_merge($requires, $_requires);
+        }
+        $requires = array_merge($requires, $packageName);
+        $requires = array_unique($requires);
+    } else {
+        $packages = getPackages($lab);
+        // Zend_Debug::dump($packages);
+        if (isset($packages[$packageName])) {
+            $p = $packages[$packageName];
+
+            $p = isset($p['dev-master']) ? $p['dev-master'] : current($p);
+
+            if (isset($p['require'])) {
+                $requires = array_keys($p['require']);
+                $rs = $requires;
+                foreach ($rs as $r) {
+                    $_requires = getReqires($r, $lab);
+                    $requires = array_merge($requires, $_requires);
+                }
+            }
+            $requires = array_merge($requires, [$packageName]);
+            $requires = array_unique($requires);
+        }
+    }
+    return $requires;
+}
+
+
+if (1 > count($argv)) {
+    echo "Usage: php -f {$argv[0]} [package_name]\n";
+    return;
+}
+// $ps = getPackages('tm'); 
+// // print_r(array_keys($ps));
+
+// $package = $argv[1];
+// $rs = getReqires($package, 'tm');
+// //print_r($rs);
+
+// $r = current($rs);
+// foreach ($rs as $r) {
+//     $p = $ps[$r];
+//     $p = isset($p['dev-master']) ? $p['dev-master'] : current($p);
+//     //echo $p['source']['url'] . "\n";
+//     $url = str_replace(array('git@github.com:', 'https://github.com/', '.git'), '', $p['source']['url']);
+//     echo $url . "\n";
+// }
+
+
+// return;
 $modman = $argv[1];
 
 $modman = @file_get_contents($modman);
