@@ -1,6 +1,6 @@
 <?php
 
-namespace Tmhub;
+// namespace Tmhub;
 
 class SQLCreateStatemant2Mage2DdlTableConvertor
 {
@@ -113,7 +113,8 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
 
             if (strstr($column, " DEFAULT ")) {
                 list(, $default) = explode(" DEFAULT ", $column, 2);
-                $default = array_shift(explode(" ", $default));
+                $default = explode(" ", $default);
+                $default = array_shift($default);
                 $default = str_replace(array("'", "\"", "`"), '', $default);
 
                 if ($default == '') {
@@ -471,10 +472,10 @@ $tableName = $argv[5];
 $magentoVersion = isset($argv[6]) ? $argv[6] : 1;
 
 $link = mysqli_connect($host, $username, $password);
-mysqli_select_db($database);
+mysqli_select_db($link, $database);
 $query = "SHOW CREATE TABLE {$tableName}";
 
-$result = mysqli_query($query);
+$result = mysqli_query($link, $query);
 
 $_sql = array();
 $sql = '';
