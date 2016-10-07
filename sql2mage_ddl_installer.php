@@ -470,20 +470,20 @@ $database  = $argv[4];
 $tableName = $argv[5];
 $magentoVersion = isset($argv[6]) ? $argv[6] : 1;
 
-$link = mysql_connect($host, $username, $password);
-mysql_select_db($database);
+$link = mysqli_connect($host, $username, $password);
+mysqli_select_db($database);
 $query = "SHOW CREATE TABLE {$tableName}";
 
-$result = mysql_query($query);
+$result = mysqli_query($query);
 
 $_sql = array();
 $sql = '';
-while ($line = mysql_fetch_array($result)) {
+while ($line = mysqli_fetch_array($result)) {
     foreach ($line as $value) {
         $_sql[] = $value;
     }
 }
-mysql_close($link);
+mysqli_close($link);
 
 $sql = $_sql[2];
 $line = "***************************";
