@@ -51,7 +51,12 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
         );
         $this->tableName = $tableName;
 
-        list($vendor, $moduleName, $modelName) = explode('_', $tableName, 3);
+        if (substr_count($tableName, "_") == 2) {
+            list($vendor, $moduleName, $modelName) = explode('_', $tableName, 3);
+        } else {
+            list($vendor, $moduleName) = explode('_', $tableName, 2);
+            $modelName = $moduleName;
+        }
         $this->vendorName = ucfirst($vendor);
         $this->moduleName = ucfirst($moduleName);
         $this->modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $modelName)));
