@@ -348,7 +348,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
         $str .= "\n/* {$filename} */\n<?php namespace {$vendor}\\{$moduleName}\\Model;
 
 use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;
-use Magento\Framework\Object\IdentityInterface;
+use Magento\Framework\DataObject\IdentityInterface;
 
 class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
     implements {$modelName}Interface, IdentityInterface
