@@ -340,8 +340,31 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
 
         $str .= "\n}";
         // return $str;
-
         $_str[$filename] = $str;
+
+        $filename = "{$vendor}/{$moduleName}/Api/Data/{$modelName}SearchResultsInterface.php";
+        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n
+use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;\n\n"
+            . "interface {$modelName}SearchResultsInterface\n{\n";
+        $t = '    ';
+
+        $str .= $t . "/**
+     * Get list.
+     *
+     * @return {$modelName}Interface[]
+     */
+    public function getItems();
+
+    /**
+     * Set list.
+     *
+     * @param {$modelName}Interface[] \$items
+     * @return \$this
+     */
+    public function setItems(array \$items);";
+        $str .= "\n}";
+        $_str[$filename] = $str;
+
         $str = '';
         $tag = strtolower($moduleName . '_' . $modelName);
         $filename = "{$vendor}/{$moduleName}/Model/{$modelName}.php";
