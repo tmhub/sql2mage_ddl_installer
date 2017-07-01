@@ -342,26 +342,89 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
         // return $str;
         $_str[$filename] = $str;
 
+// Generate searsh interface
         $filename = "{$vendor}/{$moduleName}/Api/Data/{$modelName}SearchResultsInterface.php";
-        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n
-use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;\n\n"
+        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n"
             . "interface {$modelName}SearchResultsInterface\n{\n";
         $t = '    ';
 
         $str .= $t . "/**
      * Get list.
      *
-     * @return {$modelName}Interface[]
+     * @return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface[]
      */
     public function getItems();
 
     /**
      * Set list.
      *
-     * @param {$modelName}Interface[] \$items
+     * @param \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface[] \$items
      * @return \$this
      */
     public function setItems(array \$items);";
+        $str .= "\n}";
+        $_str[$filename] = $str;
+
+// Generate  Repository interface
+        $lowModelName = strtolower($modelName);
+        $filename = "{$vendor}/{$moduleName}/Api/{$modelName}RepositoryInterface.php";
+        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api;\n
+/**
+ * {$modelName} CRUD interface.
+ * @api
+ */\n
+interface {$modelName}RepositoryInterface\n{\n
+    /**
+     * Save {$lowModelName}.
+     *
+     * @throws \\Magento\\Framework\\Exception\\LocalizedException
+     *
+     * @param \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface \${$lowModelName} The {$lowModelName}
+     * @return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface
+     */
+    public function save(Data\\{$modelName}Interface \${$lowModelName});
+
+    /**
+     * Retrieve {$lowModelName} by {$lowModelName} id
+     *
+     * @throws \\Magento\\Framework\\Exception\\LocalizedException
+     *
+     * @param int \$id {$lowModelName} id.
+     * @return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface
+     */
+    public function getById(\$id);
+
+    /**
+     * Retrieve {$lowModelName}s matching the specified criteria.
+     *
+     * @throws \\Magento\\Framework\\Exception\\LocalizedException
+     *
+     * @param \\Magento\\Framework\\Api\\SearchCriteriaInterface \$searchCriteria The search criteria
+     * @return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}SearchResultsInterface
+     */
+    public function getList(\\Magento\\Framework\\Api\\SearchCriteriaInterface \$searchCriteria);
+
+    /**
+     * Delete {$lowModelName}.
+     *
+     * @throws \\Magento\\Framework\\Exception\\LocalizedException
+     *
+     * @param \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface \${$lowModelName} The {$lowModelName}
+     * @return bool true on success
+     */
+    public function delete(Data\\{$modelName}Interface \${$lowModelName});
+
+    /**
+     * Delete {$lowModelName} by ID.
+     *
+     * @throws \\Magento\\Framework\\Exception\\NoSuchEntityException
+     * @throws \\Magento\\Framework\\Exception\\LocalizedException
+     *
+     * @param int \$id The {$lowModelName} Id
+     * @return bool true on success
+     */
+    public function deleteById($id);";
+
         $str .= "\n}";
         $_str[$filename] = $str;
 
