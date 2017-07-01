@@ -315,7 +315,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
             $comment = "{$t}/**\n"
                 . "{$t} * Get {$column['name']}\n"
                 . "{$t} * \n"
-                . "{$t} * return {$type}\n"
+                . "{$t} * @return {$type}\n"
                 . "{$t} */";
             $str .= "{$comment}\n{$t}public function get{$name}();\n\n";
         }
@@ -332,7 +332,7 @@ class SQLCreateStatemant2Mage2DdlTableConvertor
                 . "{$t} * Set {$column['name']}\n"
                 . "{$t} * \n"
                 . "{$t} * @param {$type} {$param} \n"
-                . "{$t} * return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface\n"
+                . "{$t} * @return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface\n"
                 . "{$t} */";
 
             $str .= "{$comment}\n{$t}public function set{$name}({$param});\n\n";
@@ -400,7 +400,7 @@ class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
             $comment = "{$t}/**\n"
                 . "{$t} * Get {$column['name']}\n"
                 . "{$t} * \n"
-                . "{$t} * return {$type}\n"
+                . "{$t} * @return {$type}\n"
                 . "{$t} */";
             $const = 'self::' . strtoupper($column['name']);
             $str .= "{$comment}\n{$t}public function get{$name}()
@@ -422,7 +422,7 @@ class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
                 . "{$t} * Set {$column['name']}\n"
                 . "{$t} * \n"
                 . "{$t} * @param {$type} {$param} \n"
-                . "{$t} * return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface\n"
+                . "{$t} * @return \\{$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface\n"
                 . "{$t} */";
 
             $str .= "{$comment}\n{$t}public function set{$name}({$param})
