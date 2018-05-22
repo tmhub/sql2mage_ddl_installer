@@ -463,7 +463,7 @@ class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
      */
     protected function _construct()
     {
-        \$this->_init('{$vendor}\\{$moduleName}\\Model\\Resource\\{$modelName}');
+        \$this->_init('{$vendor}\\{$moduleName}\\Model\\ResourceModel\\{$modelName}');
     }
 
     /**
@@ -523,14 +523,14 @@ class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
         // generate resource
 
         $primaryKey = end($this->primary);
-        $filename = "{$vendor}/{$moduleName}/Model/Resource/{$modelName}.php";
+        $filename = "{$vendor}/{$moduleName}/Model/ResourceModel/{$modelName}.php";
         $str .= "\n/* {$filename} */\n<?php
-namespace {$vendor}\\{$moduleName}\\Model\\Resource;
+namespace {$vendor}\\{$moduleName}\\Model\\ResourceModel;
 
 /**
  * {$moduleName} {$modelName} mysql resource
  */
-class {$modelName} extends \\Magento\\Framework\\Model\\Resource\\Db\\AbstractDb
+class {$modelName} extends \\Magento\\Framework\\Model\\ResourceModel\\Db\\AbstractDb
 {
     /**
      * Initialize resource model
