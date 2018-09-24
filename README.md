@@ -1,7 +1,7 @@
 # sql2mage_ddl_installer
 php tool for generating  magento ddl installer script
 
-#usage
+## usage
 ~~~bash
 $ php -f sql2mage_installer.php 127.0.0.1 user password magento tm_helpmate_status
 
@@ -59,7 +59,7 @@ class InstallSchema implements InstallSchemaInterface
 *********************************************************************************
 ~~~
 
-#how works
+## how works
 
 - SHOW CREATE TABLE {$tableName}
 - convert to mage installer script
