@@ -1,9 +1,9 @@
 # sql2mage_ddl_installer
 php tool for generating  magento ddl installer script
 
-#usage 
+#usage
 ~~~bash
-$ php -f sql2mage_ddl_installer.php 127.0.0.1 user password magento tm_helpmate_status  
+$ php -f sql2mage_ddl_installer.php 127.0.0.1 user password magento tm_helpmate_status
 
 *********************************************************************************
 CREATE TABLE `tm_helpmate_status` (
@@ -38,9 +38,8 @@ $table = $installer->getConnection()
 *********************************************************************************
 ~~~
 
-#how works 
+#how works
 
 - SHOW CREATE TABLE {$tableName}
 - convert to mage installer script
-
 
