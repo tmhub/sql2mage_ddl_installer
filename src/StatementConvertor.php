@@ -9,6 +9,7 @@ include_once ROOT_DIR . '/src/Api/Data/SearchResultsInterfaceGenerator.php';
 include_once ROOT_DIR . '/src/Api/RepositoryInterfaceGenerator.php';
 include_once ROOT_DIR . '/src/Model/ModelGenerator.php';
 include_once ROOT_DIR . '/src/Model/ResourceModelGenerator.php';
+include_once ROOT_DIR . '/src/Model/ResourceModel/CollectionGenerator.php';
 include_once ROOT_DIR . '/src/Setup/InstallSchemaGenerator.php';
 
 // class SQLCreateStatemant2Mage2DdlTableConvertor
@@ -276,6 +277,7 @@ class StatementConvertor extends GeneratorAbstract
             \Swissup\Api\RepositoryInterfaceGenerator::class,
             \Swissup\Model\ModelGenerator::class,
             \Swissup\Model\ResourceModelGenerator::class,
+            \Swissup\Model\ResourceModel\CollectionGenerator::class,
             \Swissup\Setup\InstallSchemaGenerator::class,
         ];
 
