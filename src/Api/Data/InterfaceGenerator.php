@@ -23,7 +23,7 @@ class InterfaceGenerator extends \Swissup\GeneratorAbstract
         $modelName = $this->getModelName();
 
         $filename = $this->getFilename();
-        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n"
+        $str = "<?php\nnamespace {$vendor}\\{$moduleName}\\Api\\Data;\n\n/* {$filename} */\n"
             . "interface {$modelName}Interface\n{\n";
         $t = '    ';
         foreach ($this->getColumns() as $column) {

@@ -24,7 +24,7 @@ class RepositoryInterfaceGenerator extends \Swissup\GeneratorAbstract
 
         $lowModelName = strtolower($modelName);
         $filename = $this->getFilename();
-        $str = "\n/* {$filename} */\n<?php\nnamespace {$vendor}\\{$moduleName}\\Api;\n
+        $str = "<?php\nnamespace {$vendor}\\{$moduleName}\\Api;\n\n/* {$filename} */\n
 /**
  * {$modelName} CRUD interface.
  * @api
@@ -79,7 +79,7 @@ interface {$modelName}RepositoryInterface\n{\n
      * @param int \$id The {$lowModelName} Id
      * @return bool true on success
      */
-    public function deleteById($\id);";
+    public function deleteById(\$id);";
 
         $str .= "\n}";
 

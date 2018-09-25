@@ -27,10 +27,12 @@ class ModelGenerator extends \Swissup\GeneratorAbstract
         $tag = strtolower($moduleName . '_' . $modelName);
         $filename = $this->getFilename();
 
-        $str .= "\n/* {$filename} */\n<?php namespace {$vendor}\\{$moduleName}\\Model;
+        $str .= "<?php namespace {$vendor}\\{$moduleName}\\Model;
 
 use {$vendor}\\{$moduleName}\\Api\\Data\\{$modelName}Interface;
 use Magento\Framework\DataObject\IdentityInterface;
+
+/* {$filename} */
 
 class {$modelName} extends \\Magento\\Framework\\Model\\AbstractModel
     implements {$modelName}Interface, IdentityInterface

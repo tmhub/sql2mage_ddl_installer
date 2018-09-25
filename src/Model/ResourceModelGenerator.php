@@ -28,9 +28,10 @@ class ResourceModelGenerator extends \Swissup\GeneratorAbstract
         $t = '    ';
         $primaryKey = $this->getPrimary();
         $primaryKey = end($primaryKey);
-        $str .= "\n/* {$filename} */\n<?php
+        $str .= "<?php
 namespace {$vendor}\\{$moduleName}\\Model\\ResourceModel;
 
+/* {$filename} */
 /**
  * {$moduleName} {$modelName} mysql resource
  */

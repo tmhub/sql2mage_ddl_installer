@@ -31,7 +31,8 @@ class InstallSchemaGenerator extends \Swissup\GeneratorAbstract
         $t = '    ';
         $filename = $this->getFilename();
 
-        $str = "\n/* {$filename} */\n<?php namespace {$vendor}\\{$moduleName}\\Setup;
+        $str = "<?php
+namespace {$vendor}\\{$moduleName}\\Setup;
 
 use Magento\Framework\Setup\InstallSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
@@ -39,12 +40,14 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Ddl\Table;
 
+/* {$filename} */
+
 /**
  * @codeCoverageIgnore
  */
 class InstallSchema implements InstallSchemaInterface
 {
-    public function install(SchemaSetupInterface $setup, ModuleContextInterface $context)
+    public function install(SchemaSetupInterface \$setup, ModuleContextInterface \$context)
     {\n{$t}{$t}\$table = \$installer->getConnection()\n"
             . "{$t}{$t}->newTable(\$installer->getTable('{$tableName}'))\n";
 

@@ -268,7 +268,7 @@ class StatementConvertor extends GeneratorAbstract
         $vendor = $this->getVendorName();
         $moduleName = $this->getModuleName();
         $modelName = $this->getModelName();
-        $_str = array();
+        $files = array();
 
         $classes = [
             \Swissup\Api\Data\InterfaceGenerator::class,
@@ -281,12 +281,27 @@ class StatementConvertor extends GeneratorAbstract
 
         foreach ($classes as $class) {
             $generator = $this->getGenerator($class);
-            $_str[$generator->getFilename()] = (string) $generator;
+            $files[$generator->getFilename()] = (string) $generator;
+        }
+
+        $dir = ROOT_DIR . '/tmp/';
+        if (!file_exists($dir) && !is_dir($dir)) {
+            mkdir($dir);
+        }
+
+        foreach ($files as $filename => $content) {
+            $filename = $dir . $filename;
+
+            $dirname = dirname($filename);
+            if (!file_exists($dirname) && !is_dir($dirname)) {
+                mkdir($dirname, 0777, true);
+            }
+            file_put_contents($filename, $content);
         }
 
         // $str = '';
-        // print_r(array_keys($_str));
+        // print_r(array_keys($files));
         // return '';
-        return implode('', $_str);
+        return implode("\n-------------------\n", $files);
     }
 }
