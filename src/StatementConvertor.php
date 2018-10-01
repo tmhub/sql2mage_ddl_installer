@@ -154,7 +154,7 @@ class StatementConvertor extends GeneratorAbstract
                 }
 
                 if ($default == 'NULL' || $default == 'null') {
-                    $default = 'NULL';
+                    $default = 'null';
                     $nullable = true;
                 }
             }

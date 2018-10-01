@@ -116,8 +116,8 @@ class InstallSchema implements InstallSchemaInterface
             }
             $fields = implode(", ", $fields);
 
-            $str .= "{$ttt}->addIndex(\$installer->getIdxName('{$index['table']}', {$arrayStart}{$fields}{$arrayEnd}),\n"
-                . "{$tttt}{$arrayStart}{$fields}{$arrayEnd})\n";
+            $str .= "{$ttt}->addIndex(\n{$tttt}\$installer->getIdxName('{$index['table']}', {$arrayStart}{$fields}{$arrayEnd}),\n"
+                . "{$tttt}{$arrayStart}{$fields}{$arrayEnd}\n{$ttt})\n";
         }
 
         foreach ($this->getForeignKeys() as $key) {
@@ -130,10 +130,13 @@ class InstallSchema implements InstallSchemaInterface
                 $onUpdate = ', ' . $key['on_update'];
             }
 
-            $str .= "{$ttt}->addForeignKey("
-                . "\$installer->getFkName('{$tableName}', '{$priColumnName}', '{$refTableName}', '{$refColumnName}'),\n"
-                . "{$tttt}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
-                . "{$ttt}{$onDelete}{$onUpdate})\n";
+            $str .= "{$ttt}->addForeignKey(\n"
+                . "{$tttt}\$installer->getFkName('{$tableName}', '{$priColumnName}', '{$refTableName}', '{$refColumnName}'),\n"
+                . "{$tttt}'{$priColumnName}',\n"
+                . "{$tttt}\$installer->getTable('{$refTableName}'),\n"
+                . "{$tttt}'{$refColumnName}',\n"
+                . "{$tttt}{$onDelete}{$onUpdate}\n"
+                . "{$ttt})\n";
         }
         $str .= "{$tt};\n{$tt}\$connection->createTable(\$table);
        ";
