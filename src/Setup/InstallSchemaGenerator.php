@@ -29,6 +29,10 @@ class InstallSchemaGenerator extends \Swissup\GeneratorAbstract
         $modelName = $this->getModelName();
 
         $t = '    ';
+        $tt = $t . $t;
+        $ttt = $t . $t . $t;
+        $tttt = $t . $t . $t . $t;
+
         $filename = $this->getFilename();
 
         $str = "<?php
@@ -48,22 +52,32 @@ use Magento\Framework\DB\Ddl\Table;
 class InstallSchema implements InstallSchemaInterface
 {
     public function install(SchemaSetupInterface \$setup, ModuleContextInterface \$context)
-    {\n{$t}{$t}\$table = \$installer->getConnection()\n"
-            . "{$t}{$t}->newTable(\$installer->getTable('{$tableName}'))\n";
+    {
+        \$installer = \$setup;
+        \$installer->startSetup();
+        \$connection = \$installer->getConnection();
+
+        /* generation table '$tableName' */
+        \$tableName = \$installer->getTable('{$tableName}');
+        if (\$connection->isTableExists(\$tableName)) {
+            throw new \Zend_Db_Exception(sprintf('Table \"%s\" already exists', \$tableName));
+        }
+        \$table = \$connection\n"
+            . "{$ttt}->newTable(\$tableName)\n";
 
         $arrayStart = $this->magentoVersion == 2 ? '[' : 'array(';
         $arrayEnd = $this->magentoVersion == 2 ? ']' : ')';
 
         foreach ($this->getColumns() as $column) {
-            $str .= "{$t}{$t}->addColumn('{$column['name']}', {$column['type']}, {$column['length']}, {$arrayStart}\n" .
-                    ($column['identity'] ? "{$t}{$t}{$t}'identity'  => true,\n" : '') .
-                    ($column['unsigned'] ? "{$t}{$t}{$t}'unsigned'  => true,\n" : '') .
+            $str .= "{$ttt}->addColumn('{$column['name']}', {$column['type']}, {$column['length']}, {$arrayStart}\n" .
+                    ($column['identity'] ? "{$tttt}'identity'  => true,\n" : '') .
+                    ($column['unsigned'] ? "{$tttt}'unsigned'  => true,\n" : '') .
                     ($column['nullable'] !== null ?
-                        "{$t}{$t}{$t}'nullable'  => " . ($column['nullable'] ? 'true' : 'false') . ",\n" : '') .
-                    ($column['default'] !== false ? "{$t}{$t}{$t}'default'  => {$column['default']},\n" : '') .
+                        "{$tttt}'nullable'  => " . ($column['nullable'] ? 'true' : 'false') . ",\n" : '') .
+                    ($column['default'] !== false ? "{$tttt}'default'  => {$column['default']},\n" : '') .
                     // "'nullable'  => false,\n" .
-                    ($column['primary'] ? "{$t}{$t}{$t}'primary'   => true,\n" : '') .
-                    "{$t}{$t}{$arrayEnd}, '{$column['comment']}')\n"
+                    ($column['primary'] ? "{$tttt}'primary'   => true,\n" : '') .
+                    "{$ttt}{$arrayEnd}, '{$column['comment']}')\n"
             ;
         }
         foreach ($this->getIndexes() as $index) {
@@ -73,8 +87,8 @@ class InstallSchema implements InstallSchemaInterface
             }
             $fields = implode(", ", $fields);
 
-            $str .= "{$t}{$t}->addIndex(\$installer->getIdxName('{$index['table']}', {$arrayStart}{$fields}{$arrayEnd}),\n"
-                . "{$t}{$t}{$t}{$arrayStart}{$fields}{$arrayEnd})\n";
+            $str .= "{$ttt}->addIndex(\$installer->getIdxName('{$index['table']}', {$arrayStart}{$fields}{$arrayEnd}),\n"
+                . "{$tttt}{$arrayStart}{$fields}{$arrayEnd})\n";
         }
 
         foreach ($this->getForeignKeys() as $key) {
@@ -87,12 +101,14 @@ class InstallSchema implements InstallSchemaInterface
                 $onUpdate = ', ' . $key['on_update'];
             }
 
-            $str .= "{$t}{$t}->addForeignKey("
+            $str .= "{$ttt}->addForeignKey("
                 . "\$installer->getFkName('{$tableName}', '{$priColumnName}', '{$refTableName}', '{$refColumnName}'),\n"
-                . "{$t}{$t}{$t}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
-                . "{$t}{$t}{$onDelete}{$onUpdate})\n";
+                . "{$tttt}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
+                . "{$ttt}{$onDelete}{$onUpdate})\n";
         }
-        $str .= "{$t}{$t};\n{$t}{$t}\$installer->getConnection()->createTable(\$table);
+        $str .= "{$ttt};\n{$tt}\$connection->createTable(\$table);
+
+        \$installer->endSetup();
     }
 }
 ";

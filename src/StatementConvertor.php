@@ -77,16 +77,21 @@ class StatementConvertor extends GeneratorAbstract
         );
         $this->setTableName($tableName);
 
-        if (substr_count($tableName, "_") == 2) {
+        if (substr_count($tableName, "_") > 2) {
+            list($vendor, $moduleName, $modelName) = explode('_', $tableName, 3);
+        } elseif (substr_count($tableName, "_") == 2) {
             list($vendor, $moduleName, $modelName) = explode('_', $tableName, 3);
         } else {
             list($vendor, $moduleName) = explode('_', $tableName, 2);
             $modelName = $moduleName;
         }
-        $this->setVendorName(ucfirst($vendor));
-        $this->setModuleName(ucfirst($moduleName));
+        $vendor = ucfirst($vendor);
+        $this->setVendorName($vendor);
+        $moduleName = ucfirst($moduleName);
+        $this->setModuleName($moduleName);
 
-        $this->setModelName(str_replace(' ', '', ucwords(str_replace('_', ' ', $modelName))));
+        $modelName = str_replace(' ', '', ucwords(str_replace('_', ' ', $modelName)));
+        $this->setModelName($modelName);
 
         // Zend_Debug::dump($parts);
 
