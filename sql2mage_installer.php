@@ -18,7 +18,6 @@ $tableNames = $argv[5];
 $connection = mysqli_connect($host, $username, $password);
 mysqli_select_db($connection, $database);
 
-// $tableNames = 'tm_helpmate_department,tm_helpmate_department_user,tm_helpmate_status,tm_helpmate_theard,tm_helpmate_ticket';
 $tableNames = explode(',', $tableNames);
 
 $convertor = new \Swissup\StatementConvertor();
