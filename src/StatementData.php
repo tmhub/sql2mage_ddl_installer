@@ -76,6 +76,9 @@ class StatementData
      */
     public function setModuleName($moduleName)
     {
+        if (isset($this->replacements['moduleName'][$moduleName])) {
+            $moduleName = $this->replacements['moduleName'][$moduleName];
+        }
         $this->moduleName = $moduleName;
 
         return $this;

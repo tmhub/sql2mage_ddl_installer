@@ -6,6 +6,8 @@ include_once ROOT_DIR . '/src/GeneratorAbstract.php';
 
 class InstallSchemaGenerator extends \Swissup\GeneratorAbstract
 {
+    protected $tables = [];
+
     protected $magentoVersion = 2;
 
     public function getFilename()
@@ -28,12 +30,9 @@ class InstallSchemaGenerator extends \Swissup\GeneratorAbstract
         $moduleName = $this->getModuleName();
         $modelName = $this->getModelName();
 
-        $t = '    ';
-        $tt = $t . $t;
-        $ttt = $t . $t . $t;
-        $tttt = $t . $t . $t . $t;
-
         $filename = $this->getFilename();
+
+        $this->addTable();
 
         $str = "<?php
 namespace {$vendor}\\{$moduleName}\\Setup;
@@ -55,9 +54,39 @@ class InstallSchema implements InstallSchemaInterface
     {
         \$installer = \$setup;
         \$installer->startSetup();
-        \$connection = \$installer->getConnection();
+        \$connection = \$installer->getConnection();" .
+        $this->getTables() . "
+        \$installer->endSetup();
+    }
+}
+";
+        return $str;
+    }
 
-        /* generation table '$tableName' */
+    protected function getTables()
+    {
+        $str = '';
+        foreach ($this->tables as $tableName => $_str) {
+            $str .= "
+        /* generation table '$tableName' */{$_str}";
+        }
+
+        return $str;
+    }
+
+    protected function addTable()
+    {
+        $tableName = $this->getTableName();
+        // $vendor = $this->getVendorName();
+        // $moduleName = $this->getModuleName();
+        // $modelName = $this->getModelName();
+
+        $t = '    ';
+        $tt = $t . $t;
+        $ttt = $t . $t . $t;
+        $tttt = $t . $t . $t . $t;
+
+        $str = "\n
         \$tableName = \$installer->getTable('{$tableName}');
         if (\$connection->isTableExists(\$tableName)) {
             throw new \Zend_Db_Exception(sprintf('Table \"%s\" already exists', \$tableName));
@@ -106,12 +135,9 @@ class InstallSchema implements InstallSchemaInterface
                 . "{$tttt}'{$priColumnName}', \$installer->getTable('{$refTableName}'), '{$refColumnName}',\n"
                 . "{$ttt}{$onDelete}{$onUpdate})\n";
         }
-        $str .= "{$ttt};\n{$tt}\$connection->createTable(\$table);
+        $str .= "{$tt};\n{$tt}\$connection->createTable(\$table);
+       ";
 
-        \$installer->endSetup();
-    }
-}
-";
-        return $str;
+        $this->tables[$tableName] = $str;
     }
 }

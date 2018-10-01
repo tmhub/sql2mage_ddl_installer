@@ -21,6 +21,30 @@ mysqli_select_db($connection, $database);
 // $tableNames = 'tm_helpmate_department,tm_helpmate_department_user,tm_helpmate_status,tm_helpmate_theard,tm_helpmate_ticket';
 $tableNames = explode(',', $tableNames);
 
+$convertor = new \Swissup\StatementConvertor();
+
+$convertor->setReplacements([
+    'vendorName' => [
+        'Tm' => 'Swissup'
+    ],
+    'moduleName' => [
+        'Helpmate' => 'Helpdesk'
+    ],
+    'tableName' => [
+        'tm_helpmate_department'      => 'swissup_helpdesk_department',
+        'tm_helpmate_department_user' => 'swissup_helpdesk_department_user',
+        'tm_helpmate_status'          => 'swissup_helpdesk_status',
+        'tm_helpmate_theard'          => 'swissup_helpdesk_message',
+        'tm_helpmate_ticket'          => 'swissup_helpdesk_ticket'
+    ],
+    'modelName' => [
+        'Theard' => 'Message'
+    ]
+]);
+
+$delimiter = "***************************";
+$delimiter .= $delimiter . $delimiter;
+$delimiter = "\n{$delimiter}\n";
 foreach ($tableNames as $tableName) {
     $query = "SHOW CREATE TABLE {$tableName}";
     $result = mysqli_query($connection, $query);
@@ -34,14 +58,12 @@ foreach ($tableNames as $tableName) {
     }
 
     $sql = $_sql[2];
-    $line = "***************************";
-    $line .= $line . $line;
-    echo "\n{$line}\n" . $sql . "\n{$line}\n";
+    echo "{$delimiter}" . $sql . "{$delimiter}";
 
-    $convertor = new \Swissup\StatementConvertor($sql);
+    $convertor->parse($sql);
 
     echo $convertor;
-    echo "\n{$line}\n";
+    echo "{$delimiter}";
 }
 
 mysqli_close($connection);

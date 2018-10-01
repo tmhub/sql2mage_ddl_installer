@@ -36,24 +36,18 @@ class StatementConvertor extends GeneratorAbstract
 
     protected $magentoVersion = 2;
 
-    // protected $statementData;
+    protected $generators = [];
 
-    public function __construct($sql, $version = 2)
+    public function __construct($version = 2)
     {
         $this->statementData = new \Swissup\StatementData();
         $this->magentoVersion = (int) $version;
+    }
 
-        $this->setReplacements([
-            'vendorName' => [
-                'Tm' => 'Swissup'
-            ],
-            'tableName' => [
-                'tm_helpmate_theard' => 'tm_helpmate_message'
-            ],
-            'modelName' => [
-                'Theard' => 'Message'
-            ]
-        ]);
+    public function parse($sql, $version = 2)
+    {
+        // $this->statementData = new \Swissup\StatementData();
+        $this->magentoVersion = (int) $version;
 
         $sql = str_replace(",\n", ",,", $sql);
         $sql = str_replace(array("\n", "  ", "\t"), " ", $sql);
@@ -274,7 +268,11 @@ class StatementConvertor extends GeneratorAbstract
 
     public function getGenerator($className)
     {
-        $generator = new $className();
+        if (!isset($this->generators[$className])) {
+            $this->generators[$className] = new $className();
+        }
+
+        $generator = $this->generators[$className];
 
         $generator->setStatementData($this->getStatementData());
 
