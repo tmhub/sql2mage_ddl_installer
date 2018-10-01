@@ -21,8 +21,13 @@ class StatementData
 
     protected $foreignKeys = array();
 
+    protected $replacements = array();
+
     public function setTableName($tableName)
     {
+        if (isset($this->replacements['tableName'][$tableName])) {
+            $tableName = $this->replacements['tableName'][$tableName];
+        }
         $this->tableName = $tableName;
 
         return $this;
@@ -48,6 +53,9 @@ class StatementData
      */
     public function setVendorName($vendorName)
     {
+        if (isset($this->replacements['vendorName'][$vendorName])) {
+            $vendorName = $this->replacements['vendorName'][$vendorName];
+        }
         $this->vendorName = $vendorName;
 
         return $this;
@@ -88,6 +96,10 @@ class StatementData
      */
     public function setModelName($modelName)
     {
+        if (isset($this->replacements['modelName'][$modelName])) {
+            $modelName = $this->replacements['modelName'][$modelName];
+        }
+
         $this->modelName = $modelName;
 
         return $this;
@@ -169,6 +181,18 @@ class StatementData
     public function setForeignKeys($foreignKeys)
     {
         $this->foreignKeys = $foreignKeys;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $replacements
+     *
+     * @return self
+     */
+    public function setReplacements($replacements)
+    {
+        $this->replacements = $replacements;
 
         return $this;
     }

@@ -168,6 +168,18 @@ abstract class GeneratorAbstract
     }
 
     /**
+     * @param mixed $replacements
+     *
+     * @return self
+     */
+    public function setReplacements($replacements)
+    {
+        $this->statementData->setReplacements($replacements);
+
+        return $this;
+    }
+
+    /**
      * @return mixed
      */
     public function getStatementData()

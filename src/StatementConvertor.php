@@ -43,6 +43,18 @@ class StatementConvertor extends GeneratorAbstract
         $this->statementData = new \Swissup\StatementData();
         $this->magentoVersion = (int) $version;
 
+        $this->setReplacements([
+            'vendorName' => [
+                'Tm' => 'Swissup'
+            ],
+            'tableName' => [
+                'tm_helpmate_theard' => 'tm_helpmate_message'
+            ],
+            'modelName' => [
+                'Theard' => 'Message'
+            ]
+        ]);
+
         $sql = str_replace(",\n", ",,", $sql);
         $sql = str_replace(array("\n", "  ", "\t"), " ", $sql);
         $parts = explode(",,", $sql);
@@ -273,8 +285,8 @@ class StatementConvertor extends GeneratorAbstract
 
         $classes = [
             \Swissup\Api\Data\InterfaceGenerator::class,
-            \Swissup\Api\Data\SearchResultsInterfaceGenerator::class,
-            \Swissup\Api\RepositoryInterfaceGenerator::class,
+            // \Swissup\Api\Data\SearchResultsInterfaceGenerator::class,
+            // \Swissup\Api\RepositoryInterfaceGenerator::class,
             \Swissup\Model\ModelGenerator::class,
             \Swissup\Model\ResourceModelGenerator::class,
             \Swissup\Model\ResourceModel\CollectionGenerator::class,
